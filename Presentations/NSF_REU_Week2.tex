@@ -1,0 +1,215 @@
+\documentclass{beamer}
+\usepackage{graphicx} % Required for inserting images
+\usepackage[utf8]{inputenc}
+\usepackage{hyperref}
+\title{LiDAR and Thermal Image Situational Awareness}
+\author{\texorpdfstring{Eyassu Mongalo, Megan Hu \\ \small Advisor: Mizanur Rahman Jewel}
+    {Eyassu Mongalo, Megan Hu, Advisor: Mizanur Rahman Jewel}}
+\date{May 2025}
+
+\begin{document}
+	\maketitle
+	\section{Introduction}
+		\begin{frame}{Overview of what we learned}{Intro - 1}
+			\begin{itemize}
+				\item Papers read
+				\begin{itemize}
+					\item \href{https://arxiv.org/pdf/1612.00593}{PointNet}
+					\item \href{https://arxiv.org/pdf/1706.02413}{PointNet++}
+					\item \href{https://arxiv.org/pdf/2012.09164}{Point Transformer}
+				\end{itemize}
+				\item Programming Project
+				\begin{itemize}
+					\item \href{https://colab.research.google.com/drive/18-r47vgJSdtQkfIzKkadfpQtEpEf0Y9Q?usp=sharing}{Point Transformer "TITLE"}
+				\end{itemize}
+			\end{itemize}
+		\end{frame}
+
+	\section{PointNet}
+		\begin{frame}{PointNet}{PointNet - 1}
+			Paper on Point Sets for 3D Classification and Segmentation (spend this time talking about the intro/conclusion)
+			\begin{itemize}
+				\item Point Cloud properties
+				\item Abstract View of Process
+				\item PointNet architecture
+				\item Analysis and Experiments
+			\end{itemize}
+		\end{frame}
+
+		\begin{frame}{Point Cloud}{PointNet - 2}
+			Point clouds have many interesting properties as a set of (x, y, z) coordinates
+			\begin{itemize}
+				\item \textbf{Unordered} - sets need to be invariant under N! permutations
+				\item \textbf{Interactions among points} - neighboring points form a meaningful subset
+				\item \textbf{Invariance under transformations} - segmentation and category should remain unchanged
+			\end{itemize}
+		\end{frame}
+		
+		\begin{frame}{PointNet architecture}{PointNet - 3}
+			There are 3 main factors to PointNet's architecture
+			\begin{itemize}
+				\item \textbf{Maxpooling} - Symmetric function for unordered input
+				\item \textbf{Local/Global feature combination} - Information Aggregation
+				\item \textbf{Joint Alignment Network} - Alignment of input points and features
+				\item (Include image of the archtechture lol)
+			\end{itemize}
+		\end{frame}
+		
+		\begin{frame}{Maxpooling}{PointNet - 4}
+			PointNet
+			\begin{itemize}
+				\item Maxpooling - Symmetric function for unordered input
+				\item Local/Global feature combination - Information Aggregation
+				\item Joint Alignment Network - Alignment of input points and features
+			\end{itemize}
+		\end{frame}
+
+		\begin{frame}{Local/Global feature Aggregation}{PointNet - 5}
+			YAP
+			\begin{itemize}
+				\item yap
+				\item yap
+				\item yap
+			\end{itemize}
+		\end{frame}
+		
+		\begin{frame}{Joint Alignment Network}{PointNet - 6}
+			YAP
+			\begin{itemize}
+				\item yap
+				\item yap
+				\item yap
+			\end{itemize}
+		\end{frame}
+		
+		\begin{frame}{Analysis and Experiment}{PointNet - 7}
+			YAP
+			\begin{itemize}
+				\item yap
+				\item yap
+				\item yap
+			\end{itemize}
+		\end{frame}
+	\section{PointNet++}
+		\begin{frame}{PointNet++ Motivation}{PointNet++ - 1}
+			\begin{itemize}
+				\item \textbf{PointNet} was revolutionary in handling unordered 3D point clouds directly.
+				\item But it cannot capture \textit{local geometric features} (e.g., edges, corners).
+				\item \textbf{PointNet++} extends PointNet by introducing a hierarchical framework that models \textit{local structures}.
+				\item Inspired by how CNNs process images through local patches.
+			\end{itemize}
+		\end{frame}
+
+
+	\section{Point Transformer}
+		\begin{frame}{Hierarchical Feature Learning}{PointNet++ - 2}
+			\begin{itemize}
+				\item \textbf{Local regions} are formed using Euclidean distance and centered via \textbf{Farthest Point Sampling (FPS)}.
+				\item Apply PointNet to each region to extract local features.
+				\item Group local features and repeat to build a multi-level hierarchy.
+				\item Enables learning of both fine and global geometric structure.
+			\end{itemize}
+		\end{frame}
+
+		
+	\section{PyTorch}
+		\begin{frame}{Hierarchical Set Abstraction}{PointNet++ - 3}
+			Each abstraction layer contains:
+			\begin{itemize}
+				\item \textbf{Sampling layer}: Selects well-distributed centroids via FPS.
+				\item \textbf{Grouping layer}: Forms local neighborhoods via Ball Query or k-NN.
+				\item \textbf{PointNet layer}: Learns zone-level features using relative coordinates.
+			\end{itemize}
+		\end{frame}
+
+		\begin{frame}{Density Adaptation}{PointNet++ - 4}
+			To handle \textbf{non-uniform sampling density}:
+			\begin{itemize}
+				\item \textbf{Multi-Scale Grouping (MSG)}: Extracts features at multiple radii and trains with input dropout for robustness.
+				\item \textbf{Multi-Resolution Grouping (MRG)}: Efficiently combines raw + hierarchical features, adapting based on local density.
+			\end{itemize}
+		\end{frame}
+
+		\begin{frame}{Feature Propagation for Segmentation}{PointNet++ - 5}
+			To restore point-level features for segmentation:
+			\begin{itemize}
+				\item \textbf{Interpolation}: Inverse distance weighted k-NN.
+				\item \textbf{Skip connections}: Reuse features from earlier layers.
+				\item \textbf{Unit PointNet}: Updates per-point features via shared MLPs.
+			\end{itemize}
+		\end{frame}
+
+		\begin{frame}{Experiments}{PointNet++ - 6}
+			\begin{itemize}
+				\item Datasets: MNIST (2D), ModelNet40 (3D), SHREC15 (non-rigid), ScanNet (real scenes).
+				\item MSG and MRG maintain strong accuracy under point dropout.
+				\item PN++ outperforms PointNet in both classification and segmentation.
+				\item Avoids voxelization, reducing quantization error and preserving detail.
+			\end{itemize}
+		\end{frame}
+
+		\begin{frame}{Non-Euclidean Classification}{PointNet++ - 7}
+			\begin{itemize}
+				\item On SHREC15, PN++ uses \textbf{geodesic distance} instead of Euclidean.
+				\item Intrinsic features: WKS, HKS, multi-scale Gaussian curvature.
+				\item Geodesic neighborhoods preserve surface structure across deformations.
+				\item Outperforms XYZ + Euclidean approaches by large margin.
+			\end{itemize}
+		\end{frame}
+
+		\begin{frame}{Feature Visualization}{PointNet++ - 8}
+			\begin{itemize}
+				\item Visualizations show learned 3D primitives: planes, lines, corners.
+				\item Indicates that early layers learn meaningful local geometry.
+				\item Supports success of PN++'s hierarchical, geometry-aware design.
+			\end{itemize}
+		\end{frame}
+
+
+	\section{Closing}
+		\begin{frame}{Plans for Next Week}{Closing – 1}
+			\begin{block}{Focus Areas}
+				\vspace{-0.3em}
+				\begin{itemize}
+					\item \textit{More papers} – Read 2+ papers on Thermal Transformers 
+					\item \textit{Mini Project \#3} – Complete a short PyTorch Project on VisionTransformer
+					\item \textit{Thermal} – Deepen understanding of feature extraction from sensor data.
+				\end{itemize}
+			\end{block}
+			\vspace{1em}
+			\begin{block}{Weekly Flow}
+				\textit{Read → Test → Build → Reflect}
+			\end{block}
+		\end{frame}
+		
+		\begin{frame}[allowframebreaks]{Works Cited}{Closing - 2}
+			\begin{thebibliography}{}\small
+				\bibitem{PointNet}
+				Qi, C. R., Su, H., Mo, K., \& Guibas, L. J. (2017). \textit{PointNet: Deep learning on point sets for 3D classification and segmentation}.\\
+				\url{https://arxiv.org/pdf/1612.00593}.\\
+				Accessed 29 May 2025.
+				
+				\bibitem{PointNet++}
+				Qi, C. R., Yi, L., Su, H., \& Guibas, L. J. (2017). \textit{PointNet++: Deep hierarchical feature learning on point sets in a metric space}.\\
+				\url{https://arxiv.org/pdf/1706.02413}.\\
+				Accessed 29 May 2025.
+				
+				\bibitem{Point Transformer}
+				Zhao, H., Jiang, L., Jia, J., Torr, P. H. S., \& Koltun, V. \textit{Point Transformer}.\\
+				\url{https://arxiv.org/pdf/2012.09164}.\\
+				Accessed 29 May 2025.
+				
+				\bibitem{Attention is All You Need}
+				Vaswani, A., Shazeer, N., Parmar, N., Uszkoreit, J., Jones, L., Gomez, A. N., Kaiser, Ł., \& Polosukhin, I. (2017).
+				\textit{Attention is All You Need}.\\
+				\url{https://arxiv.org/pdf/1706.03762}.\\
+				Accessed 29 May 2025.
+				
+				\bibitem{PyTorch Point Transformer}
+				Google Colab. (n.d.). \textit{Neural Networks}. 3Blue1Brown, YouTube.\\
+				\url{https://colab.research.google.com/drive/18-r47vgJSdtQkfIzKkadfpQtEpEf0Y9Q}.\\
+				Accessed 29 May 2025.
+				
+			\end{thebibliography}
+		\end{frame}
+\end{document}
