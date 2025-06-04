@@ -1,0 +1,421 @@
+\documentclass{beamer}
+\usepackage{graphicx} % Required for inserting images
+\usepackage[utf8]{inputenc}
+\usepackage{hyperref}
+
+\title{LiDAR and Thermal Image Situational Awareness}
+\author{\texorpdfstring{Eyassu Mongalo, Megan Hu \\ \small Advisor: Mizanur Rahman Jewel}
+    {Eyassu Mongalo, Megan Hu, Advisor: Mizanur Rahman Jewel}}
+\date{May 2025}
+
+\begin{document}
+	\maketitle
+	\section{Introduction}
+		\begin{frame}{Overview of what we learned}{Intro - 1}
+			\begin{itemize}
+				\item Papers read
+				\begin{itemize}
+					\item \href{https://arxiv.org/pdf/1612.00593}{PointNet}
+					\item \href{https://arxiv.org/pdf/1706.02413}{PointNet++}
+					\item \href{https://arxiv.org/pdf/2012.09164}{Point Transformer}
+				\end{itemize}
+				\item Programming Project
+				\begin{itemize}
+					\item \href{https://colab.research.google.com/drive/18-r47vgJSdtQkfIzKkadfpQtEpEf0Y9Q?usp=sharing}{Point Transformer Testing}
+				\end{itemize}
+			\end{itemize}
+		\end{frame}
+
+	\section{PointNet}
+		\begin{frame}{PointNet}{PointNet - 1}
+			Paper on Point Sets for 3D Classification and Segmentation
+			\begin{itemize}
+				\item Point Cloud properties
+				\item Abstract View of Process
+				\item PointNet architecture
+				\item Analysis and Experiments
+			\end{itemize}
+		\end{frame}
+
+		\begin{frame}{Point Cloud}{PointNet - 2}
+			Point clouds have many interesting properties as a set of (x, y, z) coordinates
+			\begin{itemize}
+				\item \textbf{Unordered} - sets need to be invariant under N! permutations
+				\item \textbf{Interactions among points} - neighboring points form a meaningful subset
+				\item \textbf{Invariance under transformations} - segmentation and category should remain unchanged
+			\end{itemize}
+		\end{frame}
+		
+		\begin{frame}{PointNet architecture}{PointNet - 3}
+			There are 3 main factors to PointNet's architecture
+			\begin{itemize}
+				\item \textbf{Maxpooling} - Symmetric function for unordered input
+				\item \textbf{Local/Global feature combination} - Information Aggregation
+				\item \textbf{Joint Alignment Network} - Alignment of input points and features
+			\end{itemize}
+		\end{frame}
+		
+		\begin{frame}{Why Maxpool?}{PointNet - 4}
+			3 Possible Methods for a way to work with a function S.T. it's invariant to permutations
+			\begin{itemize}
+				\item \textbf{Order} - Find a way to canonically order set
+				\begin{itemize}
+					\item If possible requires an Bijection to 1D
+				\end{itemize}
+				\item \textbf{Train an RNN} - Treat Input as a Sequence train
+				\begin{itemize}
+					\item Impossible to totally omit order in a RNN
+				\end{itemize}
+				\item \textbf{Simple Symmetric Function} - Find a simple symetric function
+				\begin{itemize}
+					\item By commutative property such a function is invariant to permutations
+					\item Maxpooling has shown to have the best results out of the abelian functions
+				\end{itemize}
+			\end{itemize}
+		\end{frame}
+	
+		\begin{frame}{Maxpool's purpose}{PointNet - 5}\small
+            Maxpool attempts to approximate a general function \[f(\{x_1, \ldots, x_n\}) \approx g(h(x_1), \ldots, h(x_n))\]
+            where \( f : 2^{\mathbb{R}^N} \to \mathbb{R} \), \( h : \mathbb{R}^N \to \mathbb{R}^K \), and  \[
+                g : \underbrace{\mathbb{R}^K \times \cdots \times \mathbb{R}^K}_{n} 
+                \to \mathbb{R}
+            \]
+            is a symmetric function.
+            
+			\begin{itemize}\normalsize
+				\item \textbf{g(x)} - Composition of single variable function and a max pooling function
+                \item \textbf{h(x)} - Function that gets approximated by a multilayer perceptron
+			\end{itemize}
+            different h(x) can be used to approximate different f(x).
+		\end{frame}
+
+		\begin{frame}{Local/Global feature Aggregation}{PointNet - 6}
+			The previous output for the previous slides is a vector \[[f_1,...,f_K]\]
+			\begin{itemize}
+				\item \textbf{Global Signature} - this is the signature of the input set
+                \begin{itemize}
+                    \item Easily able to train SVM or MLP classifier with this
+                \end{itemize}
+				\item \textbf{Point segmentation} - A combination of both local and global features
+                \begin{itemize}
+                    \item For point segmentation we must feed the global features back 
+                    \item This is done by concatenating point features with its global features
+                    \item Now it can extract new features based on the combined ones, this time aware of both local and global information
+                \end{itemize}
+			\end{itemize}
+		\end{frame}
+		
+		\begin{frame}{Joint Alignment Network}{PointNet - 7}
+			How to train model to recognize structure independant of orientation
+			\begin{itemize}
+				\item \textbf{Mini Network} - \textbf{JAN} is a Mini network designed to predict an affine transformation matrix
+                	\begin{itemize}
+                        \item Mini Network resembles larger one
+                        \item The transformed matrix gets constraineed to be close to the orthogonal one
+        			\end{itemize}
+			\end{itemize}
+            \[L_{reg}=||I-AA^T||^2_F\]
+		\end{frame}
+		
+		\begin{frame}{Analysis and Experiment}{PointNet - 8}
+			\begin{itemize}
+				\item \textbf{Universal Approximation} - Given enough neurons at the max pooling layer f can be arbitrarily approximated by our network
+				\item \textbf{Bottleneck dimension} - small corruptions or extra noise points in the input set are not likely to change the output of our network
+				\item \textbf{Experiments} - Shown to be better than state of the art
+			\end{itemize}
+		\end{frame}
+
+        
+	\section{PointNet++}
+	
+\begin{frame}{PointNet++ Motivation}{PointNet++ - 1}
+\begin{columns}[T]
+  \begin{column}{0.55\textwidth}
+    \begin{itemize}
+      \item \textbf{PointNet} was revolutionary in handling unordered 3D point clouds directly.
+      \item But it cannot capture \textit{local geometric features} (e.g., edges, corners).
+      \item \textbf{PointNet++} extends PointNet with a hierarchical framework to model \textit{local structures}.
+      \item Inspired by how CNNs process images through local patches.
+    \end{itemize}
+  \end{column}
+  
+  \begin{column}{0.45\textwidth}
+    \includegraphics[width=\linewidth]{PN3.png}
+  \end{column}
+\end{columns}
+\end{frame}
+
+
+\begin{frame}{Hierarchical Feature Learning}{PointNet++ - 2}
+\begin{columns}[T]
+
+% Left: Visual
+\begin{column}{0.5\textwidth}
+    \centering
+    \includegraphics[width=0.9\linewidth]{PN1.png}
+    \vspace{0.5em}
+    \scriptsize Illustration of local grouping \& feature abstraction
+\end{column}
+
+% Right: Key points
+\begin{column}{0.5\textwidth}
+    \small
+    \textbf{How PointNet++ learns structure:}
+    \begin{itemize}
+        \item \textbf{Local regions} are defined using Euclidean distance.
+        \item Region centers chosen by \textbf{Farthest Point Sampling (FPS)}.
+        \item PointNet applied to each region to extract features.
+        \item Features grouped recursively into a hierarchy.
+        \item Learns both \textit{fine details} and \textit{global context}.
+    \end{itemize}
+\end{column}
+
+\end{columns}
+\end{frame}
+
+        
+\begin{frame}{Hierarchical Set Abstraction}{PointNet++ - 3}
+
+\begin{columns}[c]
+
+% Column 1: Text (wider for emphasis)
+\begin{column}{0.6\textwidth}
+\small
+Each abstraction layer in PointNet++ contains:
+\vspace{0.5em}
+\begin{itemize}
+    \item \textbf{Sampling layer}: Selects well-distributed centroids using \textit{Farthest Point Sampling (FPS)}.
+    \item \textbf{Grouping layer}: Forms local neighborhoods via \textit{Ball Query} or \textit{k-NN}.
+    \item \textbf{PointNet layer}: Learns zone-level features using \textit{relative coordinates}.
+\end{itemize}
+\vspace{1em}
+These layers are stacked to build a robust feature hierarchy.
+\end{column}
+
+% Column 2: Vertical image layout
+\begin{column}{0.4\textwidth}
+    \includegraphics[width=\linewidth]{PN2.png} \\
+    \vspace{1em}
+    \includegraphics[width=0.9\linewidth]{PN4.png}
+\end{column}
+
+\end{columns}
+
+\end{frame}
+
+
+\begin{frame}{Density Adaptation}{PointNet++ - 4}
+
+\vspace{0.5em}
+To handle \textbf{non-uniform sampling density}, PointNet++ introduces two strategies:
+\begin{itemize}
+    \item \textbf{Multi-Scale Grouping (MSG)}: Extracts features at multiple radii and uses input dropout during training to improve robustness.
+    \item \textbf{Multi-Resolution Grouping (MRG)}: Combines raw and abstracted features efficiently, adjusting based on local point density.
+\end{itemize}
+
+\vspace{1em}
+
+% Top image: sampling strategy diagram
+\begin{center}
+    \includegraphics[width=0.9\linewidth]{PN5.png} \\
+    \scriptsize \textit{Figure: Visual explanation of local vs. global sampling and neighborhood formation}
+\end{center}
+
+\vspace{1em}
+
+% Bottom image: Stanford bunny sample comparison
+\begin{center}
+    \includegraphics[width=0.7\linewidth]{PN6.png} \\
+    \scriptsize \textit{Figure: Comparison between Farthest Point Sampling (left) and Uniform Sampling (right)}
+\end{center}
+
+\end{frame}
+
+
+\begin{frame}{Feature Propagation for Segmentation}{PointNet++ - 5}
+
+\small
+To restore point-level features for segmentation, PointNet++ combines three techniques:
+\begin{itemize}
+    \item \textbf{Interpolation}: Uses inverse distance weighted k-NN to estimate features at non-sampled points.
+    \item \textbf{Skip connections}: Brings in earlier-layer features to preserve fine-grained context.
+    \item \textbf{Unit PointNet}: Applies shared MLPs to refine each point’s feature individually.
+\end{itemize}
+
+\vspace{1.2em}
+
+\begin{columns}[T]
+    \begin{column}{0.4\textwidth}
+        \centering
+        \includegraphics[width=0.65\linewidth]{PN7.png}
+    \end{column}
+
+    \begin{column}{0.6\textwidth}
+        \centering
+        \includegraphics[width=0.95\linewidth]{PN8.png}
+    \end{column}
+\end{columns}
+
+\end{frame}
+
+
+\begin{frame}{Experiments}{PointNet++ - 6}
+
+% Top image
+\begin{center}
+    \includegraphics[width=0.85\linewidth]{PN9.png}
+\end{center}
+
+\vspace{1em}
+\small
+\textbf{Evaluation overview:}
+\begin{itemize}
+    \item Tested on \textbf{MNIST} and \textbf{ModelNet40} for classification.
+    \item Tested on \textbf{SHREC15} and \textbf{ScanNet} for segmentation and shape analysis.
+    \item Shows robustness to point dropout — accuracy remains high even when reducing test points from \textbf{1024} to \textbf{256}.
+    \item Thanks to \textbf{multi-scale (MSG)} and \textbf{multi-resolution (MRG)} strategies, PointNet++ handles sparse data effectively.
+    \item Outperforms voxel-based baselines by avoiding quantization and directly learning from raw point clouds.
+\end{itemize}
+
+\end{frame}
+
+
+\begin{frame}{Non-Euclidean Classification}{PointNet++ - 7}
+\begin{columns}[T]
+
+% Left column: bullet points
+\begin{column}{0.55\textwidth}
+\small
+\begin{itemize}
+    \item On \textbf{SHREC15}, PointNet++ uses \textbf{geodesic distance} instead of Euclidean distance.
+    \item Uses intrinsic features: \textbf{WKS}, \textbf{HKS}, and \textbf{multi-scale Gaussian curvature}.
+    \item \textbf{Geodesic neighborhoods} preserve surface structure even under non-rigid deformations.
+    \item Greatly outperforms XYZ + Euclidean baselines.
+\end{itemize}
+\end{column}
+
+% Right column: PN10 image
+\begin{column}{0.45\textwidth}
+    \centering
+    \includegraphics[width=\linewidth]{PN10.png}
+\end{column}
+
+\end{columns}
+\end{frame}
+
+    
+
+	\section{Point Transformer}
+		\begin{frame}{Point Transformer}{Point Transformer - 1}
+			Paper on the use of Transformers for 3d classification/segmentation
+			\begin{itemize}
+				\item \textbf{Self-Attention} - Inheritely invariant to permutation
+                \item \textbf{Point Transformer Block} - Utilizes Self-Attentions properties
+                \item \textbf{Architecture} - Downsamples continouosly with Transition Blocks in between
+			\end{itemize}
+            \begin{center}
+                \includegraphics[width=0.75\textheight]{Screenshot_2025-06-02_09-07-59.png}
+            \end{center}
+		\end{frame}
+		
+		\begin{frame}{Self-Attention I}{Point Transformer - 2}
+			Can be categorized into 2 types
+			\begin{itemize}
+				\item \textbf{Scalar} - \[\mathbf{y}_i = \sum_{x_j \in X} \rho\left( \phi(x_i)^T \psi(x_j) + \delta \right) \alpha(x_j)\]
+				\item \textbf{Vector} - \[\mathbf{y}_i = \sum_{x_j \in X} \rho\left( \gamma \left(\beta(\phi(x_i),\psi(x_j)) + \delta\right) \right)\odot \alpha(x_j)\]
+			\end{itemize}
+            Where $\rho$ is a normalization function (like softmax)\\
+            $\phi, \psi, \alpha$ are pointwise feature transforms (like MLPs or linear projections)\\ 
+            $\delta$ is a positional encoding feature\\
+            $\beta$ is a relation function (Like subtraction)\\
+            and $\gamma$ is a mapping function (like MLP)
+		\end{frame}
+
+		\begin{frame}{Self-Attention II}{Point Transformer - 3}
+			\begin{itemize}
+				\item \textbf{Vector Type used} - \[\mathbf{y}_i = \sum_{x_j \in X(i)} \rho\left( \gamma \left(\phi(x_i) -\psi(x_j) + \delta\right) \right)\odot (\alpha(x_j)+\delta)\] 
+			\end{itemize}
+            Where $X(i) \subseteq X$ and $X=\{x_i\}_i$ is a set of feature vectors
+        \end{frame}
+
+        \begin{frame}{Position Encoding}{Point Transformer - 4}
+			$\delta$ is defined as \[\delta = \theta(\mathbf{p}_i - \mathbf{p}_j)\]
+            Where $\theta$ is an MLP with two linear layers and one ReLU nonlinearity
+			\begin{itemize}
+				\item \textbf{Vector Type used} - \[\mathbf{y}_i = \sum_{x_j \in X(i)} \rho\left( \gamma \left(\phi(x_i) -\psi(x_j) + \delta\right) \right)\odot (\alpha(x_j)+\delta)\] 
+			\end{itemize}
+            Where $X(i) \subseteq X$ and $X$ is a set of feature vectors
+        \end{frame}
+
+        \begin{frame}{Architecture}{Point Transformer - 5} 
+			\begin{itemize}
+				\item \textbf{Backbone Structure} - 5 encoder stages on downsampled point sets
+                \begin{itemize}
+    				\item Connected by transition blocks and has variable depth
+                    \item Downsampling rates: [1, 4, 4, 4, 4]
+                    \item Cardinality: [N, N/4, N/16, N/64, N/256]
+			    \end{itemize}
+                \item \textbf{Transition Down} - Encoder Block
+                \item \textbf{Transition Up} - Decoder Block
+                \item \textbf{Output Head} - Final decoder stage that  produces a feature vector for each point in the input point set
+			\end{itemize}
+        \end{frame}
+    
+	\section{PyTorch}
+        \begin{frame}{PointNet Test}
+            \begin{itemize}
+                \item 2 tests were conducted
+                \item One with \textbf{PointNet} and one with \textbf{Point Transformer}
+                \begin{itemize}
+                    \item Point Transformer code ran for 25 Hour :(
+                    \item PointNet code ran for 3 minute :) 
+                \end{itemize}
+            \end{itemize}
+        \end{frame}
+	\section{Closing}
+		\begin{frame}{Plans for Next Week}{Closing – 1}
+			\begin{block}{Focus Areas}
+				\vspace{-0.3em}
+				\begin{itemize}
+					\item \textit{More papers} – Read 2+ papers on Thermal Transformers 
+					\item \textit{Mini Project \#3} – Complete a short PyTorch Project on VisionTransformer
+					\item \textit{Thermal} – Deepen understanding of feature extraction from sensor data.
+				\end{itemize}
+			\end{block}
+			\vspace{1em}
+			\begin{block}{Weekly Flow}
+				\textit{Read → Test → Build → Reflect}
+			\end{block}
+		\end{frame}
+		
+		\begin{frame}[allowframebreaks]{Works Cited}{Closing - 2}
+			\begin{thebibliography}{}\small
+				\bibitem{PointNet}
+				Qi, C. R., Su, H., Mo, K., \& Guibas, L. J. (2017). \textit{PointNet: Deep learning on point sets for 3D classification and segmentation}.\\
+				\url{https://arxiv.org/pdf/1612.00593}.\\
+				Accessed 29 May 2025.
+				
+				\bibitem{PointNet++}
+				Qi, C. R., Yi, L., Su, H., \& Guibas, L. J. (2017). \textit{PointNet++: Deep hierarchical feature learning on point sets in a metric space}.\\
+				\url{https://arxiv.org/pdf/1706.02413}.\\
+				Accessed 29 May 2025.
+				
+				\bibitem{Point Transformer}
+				Zhao, H., Jiang, L., Jia, J., Torr, P. H. S., \& Koltun, V. \textit{Point Transformer}.\\
+				\url{https://arxiv.org/pdf/2012.09164}.\\
+				Accessed 29 May 2025.
+				
+				\bibitem{Attention is All You Need}
+				Vaswani, A., Shazeer, N., Parmar, N., Uszkoreit, J., Jones, L., Gomez, A. N., Kaiser, Ł., \& Polosukhin, I. (2017).
+				\textit{Attention is All You Need}.\\
+				\url{https://arxiv.org/pdf/1706.03762}.\\
+				Accessed 29 May 2025.
+				
+				\bibitem{PyTorch Point Transformer}
+				Google Colab. (n.d.). \textit{Neural Networks}. 3Blue1Brown, YouTube.\\
+				\url{https://colab.research.google.com/drive/18-r47vgJSdtQkfIzKkadfpQtEpEf0Y9Q}.\\
+				Accessed 29 May 2025.
+				
+			\end{thebibliography}
+		\end{frame}
+\end{document}

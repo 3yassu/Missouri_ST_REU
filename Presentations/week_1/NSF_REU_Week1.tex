@@ -1,0 +1,317 @@
+\documentclass{beamer}
+\usepackage{graphicx} % Required for inserting images
+\usepackage[utf8]{inputenc}
+\usepackage{hyperref}
+\title{LiDAR and Thermal Image Situational Awareness}
+\author{\texorpdfstring{Eyassu Mongalo, Megan Hu \\ \small Advisor: Mizanur Rahman Jewel}
+    {Eyassu Mongalo, Megan Hu, Advisor: Mizanur Rahman Jewel}}
+\date{May 2025}
+
+\begin{document}
+	\maketitle
+	\section{Introduction}
+		\begin{frame}{Overview of what we learned}{Intro - 1}
+			\begin{itemize}
+				\item Intro
+				\item \href{https://www.youtube.com/playlist?list=PLZHQObOWTQDNU6R1_67000Dx_ZCJB-3pi}{3Blue1Brown Neural Networks playlist}
+				\item \href{https://nextjournal.com/gkoehler/pytorch-mnist}{MNIST Handwritten Digit Recognition in PyTorch}
+				\item Thermal Data
+				\item \href{https://www.faro.com/en/Resource-Library/Article/Point-Clouds-for-Beginners}{LiDAR Point Cloud Data}
+				\item Papers read
+				\begin{itemize}
+					\item \href{https://ieeexplore.ieee.org/stamp/stamp.jsp?arnumber=10123038}{Multimodal Survey}
+					\item \href{https://proceedings.neurips.cc/paper_files/paper/2022/file/1f5c5cd01b864d53cc5fa0a3472e152e-Paper-Conference.pdf}{Where2Comm}
+				\end{itemize}
+			\end{itemize}
+		\end{frame}
+
+	\section{3Blue1Brown}
+		\begin{frame}{Structure of Neural Networks}{Neural Networks - 1}
+			\begin{itemize}
+				\item Multilayer perceptron neural networks 
+				\begin{itemize}
+					\item Layers of networks: input, hidden, and output
+				\end{itemize}
+				
+				\item Neurons 
+				\begin{itemize}
+					\item Activation and weights
+					\item Weighted sum of layers using activation functions:
+					\begin{itemize}
+						\item Sigmoid function (logistic curve)
+						\item Inactivity bias
+					\end{itemize}
+				\end{itemize}
+			\end{itemize}
+		\end{frame}
+
+		\begin{frame}{Gradient descent}{Neural Networks - 2}
+			\begin{itemize}
+				\item Motivation: How do we quantify the effectiveness of our network?
+				\begin{itemize}
+					\item Neural Network Cost function: Input, Output, Parameters
+				\end{itemize}
+				\item Objective: Reaching the local minimum
+			\end{itemize}
+		\end{frame}
+
+		\begin{frame}{Backpropogation}{Neural Networks - 3}
+			\begin{itemize}
+				\item Backpropagation is an algorithm that computes the gradient for a single training example
+			\end{itemize}
+			However...it's Computationally expensive
+			\begin{itemize}
+				\item Potential Solution :  Mini-batch gradient descent
+			\end{itemize}
+		\end{frame}
+
+		\begin{frame}{LLM’s explained}{Neural Networks - 4}
+			\begin{itemize}
+				\item Large language models are trained on huge quantities of data
+				\begin{itemize}
+					\item Allows them to assign probabilities to a list of “next possible words”
+				\end{itemize}
+				\item Pretraining:
+				\begin{itemize}
+					\item Parameters: Continuous weights that determines the probabilities assigned to words, Repeatedly refined during training
+				\end{itemize}
+			\item RLHF (Reinforcement Learning with Human Feedback)
+				\begin{itemize}
+					\item Workers manually flag problematic or inaccurate predictions
+				\end{itemize}
+			\end{itemize}
+		\end{frame}
+
+		\begin{frame}{Transformers}{Neural Networks - 5}
+			\begin{itemize}
+				\item Input is tokenized into smaller units
+				\item Tokens are vectorized using embeddings
+				\item Vectors enter the attention block (more on this next)
+				\item Output moves through another operation ie. multilayer perceptron
+				\item Attention + operation steps repeat 
+			\end{itemize}
+		\end{frame}
+
+		\begin{frame}{Attention}{Neural Networks - 6}
+			\begin{itemize}
+				\item Core idea: Each token aka word vector will refer to other tokens in the input sequence to decide what to take into account for
+				\item How: Compare query vector of a token to key vectors of all other tokens
+				\item Output: Attention scores aka how relevant each other token is
+				\item Result: Scores are converted into weights via softmax and final output is a weighted sum of value vectors
+			\end{itemize}
+		\end{frame}
+
+		\begin{frame}{Softmax}{Neural Networks - 7}
+			Softmax normalizes output scores from neural networks/attention mechanism and turns them into a probability distribution      
+			\[\text{SoftMax}(z)_i = \frac{e^{z_i}}{\sum_j e^{z_j}}\]
+			In attention, softmax helps a token decide how much to “pay attention” to other tokens
+			\begin{itemize}
+				\item Core idea: larger scores give stronger weights, smaller scores fade away
+			\end{itemize}
+		\end{frame}
+
+
+	\section{Pytorch}
+		\begin{frame}{DNN, RNN, and CNN}{MNIST Pytorch - Prelude}
+			\begin{itemize}
+				\item DNN - Deep Neural Network 
+				\begin{itemize}
+					\item The other 2 are built using this type
+					\item Used for more general use-cases
+				\end{itemize}
+					
+				\item RNN - Recurrent Neural Network 
+				\begin{itemize}
+					\item Centered More toward video and text
+				\end{itemize}
+					
+				\item CNN - Convolution Neural Network 
+				\begin{itemize}
+					\item Centered toward image and audio
+					\item This will likely be the one our project uses
+				\end{itemize}
+			\end{itemize}
+		\end{frame}
+
+		\begin{frame}{Brief Overview}{MNIST Pytorch - 1}
+			\begin{itemize}
+				\item Convolution: 
+				\begin{itemize}
+					\item Filters, Kernel, Channels
+				\end{itemize}
+				\item MaxPool
+				\begin{itemize}
+					\item Splits tensor into groups of NxN, taking the max
+					\item Size = (K//N)x(K//N) where K is input size 
+				\end{itemize}
+				\item ReLU(x) = max(0, x)
+				\item Linear
+				\begin{itemize}
+					\item Node-like structure you’re used to
+				\end{itemize}
+			\end{itemize}
+		\end{frame}
+
+		\begin{frame}{Backpropogation Calculus}{MNIST Pytorch - 2}
+			We define the loss function as: \[ 
+				\text{Loss} = \sum_i (A(i) + Y(i))^2 
+			\]
+			
+			The derivative of the ReLU function is the unit step function: \[ 
+				\frac{d}{dt} \text{ReLU}(t) = \text{UnitStep}(t) 
+			\]
+			Where: \[ 
+				\text{ReLU}(t) = \max(0, t) 
+				\quad \text{and} \quad
+				\text{UnitStep}(t) =
+				\begin{cases}
+					0 & \text{if } t \leq 0 \\
+					1 & \text{if } t > 0
+				\end{cases}
+			\]
+		\end{frame}
+
+		\begin{frame}{Install/Setup}{MNIST Pytorch - 3}
+			\begin{itemize}
+				\item What is Pytorch? 
+				\begin{itemize}
+					\item Python module used to built train and test neural networks
+					\item Flexible deep learning framework
+					\item Must be installed through Pip
+				\end{itemize}
+				
+				\item Torchvision 
+				\begin{itemize}
+					\item Companion module for computer vision tasks
+				\end{itemize}
+			\end{itemize}
+		\end{frame}
+
+		\begin{frame}{Class Overview}{MNIST Pytorch - 4}
+			\begin{itemize}
+				\item Net
+				\begin{itemize}
+					\item Init: Sets up Convolution, Maxpool, ReLU , and Linear
+					\item Forward: Connects all the Convolutions and Linears 
+				\end{itemize}
+					
+				\item Executive
+				\begin{itemize}
+					\item Init: Downloads datasets and creates necessary items
+					\item Provides simple abstractions to Train, (Load/Save) Model, Test, or Print
+				\end{itemize}
+			\end{itemize}
+		\end{frame}
+
+		\begin{frame}{Demo}{MNIST Pytorch - 5}
+		\end{frame}
+
+	\section{LiDAR/Thermal}
+		\begin{frame}{Thermal Data}{LiDAR/Thermal - 1}
+			\begin{itemize}
+				\item Every pixel = temperature reading
+				\item Applications in wildlife tracking, surveillance, autonomous vehicles, disaster responses etc.
+				\item Often paired with LiDAR or RGB 
+			\end{itemize}
+		\end{frame}
+
+		\begin{frame}{LiDAR Point Cloud Data}{LiDAR/Thermal - 2}
+			\begin{itemize}
+				\item LiDAR Point Cloud Data
+				\begin{itemize}
+					\item A set of data points represented in coordinates (x, y z)
+					\item Used to represent 3D space
+				\end{itemize}
+				\item How?
+				\begin{itemize}
+					\item Points are generated using the distance and angle of laser pulses hitting a target surface
+				\end{itemize}
+			\end{itemize}
+		\end{frame}
+
+
+	\section{Readings}
+		\begin{frame}{MultiModal Survey}{Readings - 1}
+			\begin{itemize}
+				Paper on the background of multimodal learning and how Transformers grew
+				\begin{itemize}
+					\item Vanilla, Vision, and Multimodal Transformers
+					\item Applications and use-cases of transformers
+					\item Challenges and design patterns
+					\item Research Problems and future direction
+				\end{itemize}
+			\end{itemize}
+		\end{frame}
+
+		\begin{frame}{Where2Comm}{Readings – 2}
+			Objective: Optimize multi-agent systems by improving perception
+			\vspace{1em}
+			Motivating problems in multi-agent systems:
+			\begin{itemize}
+				\item High communication costs
+				\item Lack of spatial prioritization
+				\item Fixed communication strategies
+			\end{itemize}
+
+			\vspace{1em}
+			Solutions proposed by Where2Comm framework:
+			\begin{itemize}
+				\item Spatial confidence maps
+				\item Confidence-aware sparse communication
+				\item Multi-head attention with spatial priors and unified framework
+			\end{itemize}
+		\end{frame}
+
+	\section{Closing}
+		\begin{frame}{Plans for next week}{Closing - 1}
+			\begin{itemize}
+				\item Feature Extractors
+				\begin{itemize}
+					\item Read more papers on feature extracting
+				\end{itemize}
+				\item 2nd Mini Project
+				\begin{itemize}
+					\item Complete another Mini/Tutorial project on AI/Pytorch
+				\end{itemize}
+				\item LiDAR and Thermal
+				\begin{itemize}
+					\item More reading to better understand how to extract features from LiDAR point cloud and Thermal Images
+				\end{itemize}
+			\end{itemize}
+		\end{frame}
+
+		\begin{frame}[allowframebreaks]{Works Cited}{Closing - 2}
+			\begin{thebibliography}{}\small
+				\bibitem{sanderson}
+				Sanderson, Grant. \textit{Neural Networks}. 3Blue1Brown, YouTube.\\
+				\url{https://www.youtube.com/playlist?list=PLZHQObOWTQDNU6R1_67000Dx_ZCJB-3pi}.\\
+				Accessed 22 May 2025.
+
+				\bibitem{koehler}
+				Koehler, Gabriel. \textit{PyTorch MNIST from Scratch}. Nextjournal.\\
+				\url{https://nextjournal.com/gkoehler/pytorch-mnist}.\\
+				Accessed 22 May 2025.
+
+				\bibitem{thermal}
+				\textit{Thermal Imaging}. ScienceDirect Topics, Elsevier.\\
+				\url{https://www.sciencedirect.com/topics/earth-and-planetary-sciences/thermal-imaging}.\\
+				Accessed 23 May 2025.
+
+				\bibitem{faro}
+				\textit{Point Clouds for Beginners}. FARO Technologies.\\
+				\url{https://www.faro.com/en/Resource-Library/Article/Point-Clouds-for-Beginners}.\\
+				Accessed 23 May 2025.
+
+				\bibitem{badrinarayanan}
+				Badrinarayanan, Vijay, et al. “Multimodal Self-Supervised Learning of Dense Representations.” IEEE Xplore, 2023.\\
+				\url{https://ieeexplore.ieee.org/stamp/stamp.jsp?arnumber=10123038}.\\
+				Accessed 25 May 2025.
+
+				\bibitem{koh}
+				Koh, Pang Wei, et al. “STRONG: Data-Efficient Image Classification via Label Propagation and One-Shot Learning.” NeurIPS 2022.\\
+				\url{https://proceedings.neurips.cc/paper_files/paper/2022/file/1f5c5cd01b864d53cc5fa0a3472e152e-Paper-Conference.pdf}.\\
+				Accessed 25 May 2025.
+			\end{thebibliography}
+		\end{frame}
+\end{document}
+
